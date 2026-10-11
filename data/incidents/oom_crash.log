@@ -1,0 +1,35 @@
+2026-10-08T02:10:00Z INFO  [web-server] Request handled: GET /api/users - 200 OK (45ms)
+2026-10-08T02:10:05Z INFO  [web-server] Request handled: POST /api/orders - 201 Created (120ms)
+2026-10-08T02:10:12Z INFO  [web-server] Request handled: GET /api/products - 200 OK (38ms)
+2026-10-08T02:11:00Z WARN  [web-server] Heap usage at 78% (1.56GB / 2.0GB)
+2026-10-08T02:11:30Z INFO  [web-server] Request handled: GET /api/users - 200 OK (89ms)
+2026-10-08T02:12:00Z WARN  [web-server] Heap usage at 85% (1.70GB / 2.0GB)
+2026-10-08T02:12:15Z WARN  [web-server] GC pause: 450ms (threshold: 200ms)
+2026-10-08T02:12:30Z WARN  [web-server] Heap usage at 91% (1.82GB / 2.0GB)
+2026-10-08T02:12:45Z ERROR [web-server] Request failed: GET /api/users - 500 Internal Server Error (2100ms)
+2026-10-08T02:12:46Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:12:46Z ERROR [web-server]     at com.example.service.UserService.loadAllUsers(UserService.java:142)
+2026-10-08T02:12:46Z ERROR [web-server]     at com.example.controller.UserController.getUsers(UserController.java:58)
+2026-10-08T02:12:46Z ERROR [web-server]     at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:897)
+2026-10-08T02:13:00Z ERROR [web-server] Request failed: POST /api/orders - 500 Internal Server Error (3200ms)
+2026-10-08T02:13:01Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:13:01Z ERROR [web-server]     at com.example.service.OrderService.processOrder(OrderService.java:89)
+2026-10-08T02:13:15Z ERROR [web-server] Request failed: GET /api/products - 500 Internal Server Error (1800ms)
+2026-10-08T02:13:16Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:13:30Z WARN  [web-server] Heap usage at 98% (1.96GB / 2.0GB)
+2026-10-08T02:13:31Z ERROR [web-server] Request failed: GET /api/users - 500 Internal Server Error (timeout)
+2026-10-08T02:13:32Z ERROR [web-server] java.lang.OutOfMemoryError: GC overhead limit exceeded
+2026-10-08T02:13:45Z ERROR [web-server] Request failed: GET /api/health - 500 Internal Server Error
+2026-10-08T02:13:46Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:14:00Z ERROR [web-server] Request failed: GET /api/users - 500 Internal Server Error
+2026-10-08T02:14:00Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:14:01Z ERROR [health-checker] Health check FAILED for web-server (attempt 1/3)
+2026-10-08T02:14:15Z ERROR [web-server] Request failed: POST /api/orders - 500 Internal Server Error
+2026-10-08T02:14:16Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:14:30Z ERROR [health-checker] Health check FAILED for web-server (attempt 2/3)
+2026-10-08T02:14:45Z ERROR [web-server] Request failed: GET /api/products - 500 Internal Server Error
+2026-10-08T02:14:46Z ERROR [web-server] java.lang.OutOfMemoryError: Java heap space
+2026-10-08T02:15:00Z ERROR [health-checker] Health check FAILED for web-server (attempt 3/3)
+2026-10-08T02:15:01Z FATAL [health-checker] Service web-server marked UNHEALTHY after 3 consecutive failures
+2026-10-08T02:15:02Z ERROR [load-balancer] Removed web-server from rotation - unhealthy
+2026-10-08T02:15:03Z WARN  [alerting] ALERT TRIGGERED: web-server returning 500 errors (error_rate=100%, duration=2m17s)

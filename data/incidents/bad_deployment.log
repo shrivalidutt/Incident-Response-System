@@ -1,0 +1,36 @@
+2026-10-08T09:00:00Z INFO  [deploy-bot] Deployment started: app=web-service, version=v2.4.1, deployer=ci-pipeline
+2026-10-08T09:00:05Z INFO  [deploy-bot] Pulling image: registry.internal/web-service:v2.4.1
+2026-10-08T09:00:30Z INFO  [deploy-bot] Image pulled successfully (sha256:a3f8b2c1d4e5)
+2026-10-08T09:00:35Z INFO  [deploy-bot] Stopping old container: web-service-v2.4.0
+2026-10-08T09:00:40Z INFO  [deploy-bot] Starting new container: web-service-v2.4.1
+2026-10-08T09:00:45Z INFO  [web-service] Application starting... (v2.4.1)
+2026-10-08T09:00:50Z INFO  [web-service] Loading configuration from /etc/app/config.yaml
+2026-10-08T09:00:51Z WARN  [web-service] New config key 'FEATURE_NEW_CHECKOUT' enabled - experimental feature active
+2026-10-08T09:00:55Z INFO  [web-service] Database migration running: 0042_add_checkout_v2_tables.sql
+2026-10-08T09:01:00Z INFO  [web-service] Migration complete. 3 new tables created.
+2026-10-08T09:01:05Z INFO  [web-service] Application started successfully on port 8080
+2026-10-08T09:01:06Z INFO  [deploy-bot] Health check passed. Deployment v2.4.1 is LIVE.
+2026-10-08T09:01:10Z INFO  [load-balancer] web-service-v2.4.1 added to rotation
+2026-10-08T09:01:30Z INFO  [web-service] Request handled: GET /api/products - 200 OK (42ms)
+2026-10-08T09:02:00Z INFO  [web-service] Request handled: GET /api/users - 200 OK (35ms)
+2026-10-08T09:02:30Z INFO  [web-service] Request handled: POST /api/checkout - 200 OK (210ms)
+2026-10-08T09:03:00Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error (1520ms)
+2026-10-08T09:03:00Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:03:01Z ERROR [web-service]     at CheckoutServiceV2.processPayment (checkout_v2.js:87)
+2026-10-08T09:03:01Z ERROR [web-service]     at Router.handle (/app/node_modules/express/lib/router/index.js:234)
+2026-10-08T09:03:15Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error (1480ms)
+2026-10-08T09:03:15Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:03:30Z INFO  [web-service] Request handled: GET /api/products - 200 OK (40ms)
+2026-10-08T09:03:45Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error
+2026-10-08T09:03:45Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:04:00Z INFO  [web-service] Request handled: GET /api/users - 200 OK (38ms)
+2026-10-08T09:04:15Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error
+2026-10-08T09:04:15Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:04:16Z WARN  [web-service] Checkout endpoint error rate: 80% (4/5 requests failed in last 2 minutes)
+2026-10-08T09:04:30Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error
+2026-10-08T09:04:30Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:04:45Z ERROR [web-service] Request failed: POST /api/checkout - 500 Internal Server Error
+2026-10-08T09:04:45Z ERROR [web-service] TypeError: Cannot read properties of undefined (reading 'calculate_discount')
+2026-10-08T09:05:00Z WARN  [monitoring] Checkout success rate dropped from 99.8% to 16.7% after v2.4.1 deployment
+2026-10-08T09:05:01Z ERROR [monitoring] Revenue impact detected: estimated $2,400/hour in lost transactions
+2026-10-08T09:05:02Z WARN  [alerting] ALERT TRIGGERED: checkout endpoint failure rate >75% since deployment v2.4.1 (duration=2m02s)

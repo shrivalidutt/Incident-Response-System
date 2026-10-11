@@ -1,0 +1,11 @@
+{
+  "incident_type": "oom_crash",
+  "log_source": "data/incidents/oom_crash.log",
+  "auto_approve": false,
+  "metadata": {
+    "triggered_by": "manual",
+    "priority": "P1",
+    "service_name": "web-server",
+    "environment": "production"
+  }
+}
