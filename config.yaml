@@ -2,7 +2,10 @@
 # Edit agent prompts here without touching Python code.
 
 llm:
-  model: "claude-sonnet-4-20250514"
+  provider: "auto"  # "auto", "mock", "groq", or "anthropic"
+  model: "claude-3-5-sonnet-20241022"
+  groq_model: "llama-3.3-70b-versatile"
+  anthropic_model: "claude-3-5-sonnet-20241022"
   max_tokens: 2048
   temperature: 0.3
 

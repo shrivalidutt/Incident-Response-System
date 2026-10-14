@@ -1,0 +1,30 @@
+2026-10-08T04:20:00Z INFO  [api-gateway] Request handled: GET /api/dashboard - 200 OK (52ms)
+2026-10-08T04:20:05Z INFO  [api-gateway] Request handled: POST /api/login - 200 OK (180ms)
+2026-10-08T04:20:10Z INFO  [db-pool] Active connections: 8/20, idle: 12/20
+2026-10-08T04:20:30Z INFO  [api-gateway] Request handled: GET /api/reports - 200 OK (95ms)
+2026-10-08T04:21:00Z WARN  [db-pool] Connection checkout time: 850ms (threshold: 500ms)
+2026-10-08T04:21:15Z WARN  [db-pool] Active connections: 18/20, idle: 2/20
+2026-10-08T04:21:30Z ERROR [db-pool] Failed to create new connection: Connection refused (host=db-primary.internal, port=5432)
+2026-10-08T04:21:30Z ERROR [db-pool] org.postgresql.util.PSQLException: Connection to db-primary.internal:5432 refused.
+2026-10-08T04:21:31Z ERROR [db-pool]     Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+2026-10-08T04:21:45Z ERROR [api-gateway] Request failed: GET /api/dashboard - 503 Service Unavailable (5020ms)
+2026-10-08T04:21:45Z ERROR [api-gateway] Caused by: org.postgresql.util.PSQLException: Cannot acquire connection from pool
+2026-10-08T04:21:46Z WARN  [db-pool] Active connections: 20/20, idle: 0/20 - POOL EXHAUSTED
+2026-10-08T04:22:00Z ERROR [api-gateway] Request failed: POST /api/orders - 503 Service Unavailable (5015ms)
+2026-10-08T04:22:00Z ERROR [api-gateway] Caused by: java.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available
+2026-10-08T04:22:01Z ERROR [db-pool] Failed to validate connection: Connection reset by peer
+2026-10-08T04:22:15Z ERROR [api-gateway] Request failed: GET /api/users - 503 Service Unavailable (5008ms)
+2026-10-08T04:22:15Z ERROR [api-gateway] Caused by: org.postgresql.util.PSQLException: Connection to db-primary.internal:5432 refused.
+2026-10-08T04:22:30Z WARN  [db-pool] Evicting 5 dead connections from pool
+2026-10-08T04:22:30Z ERROR [db-pool] All evicted connections had error: Connection reset by peer
+2026-10-08T04:22:45Z ERROR [api-gateway] Request failed: GET /api/reports - 503 Service Unavailable
+2026-10-08T04:22:45Z ERROR [db-pool] Cannot establish connection to db-primary.internal:5432 - host unreachable
+2026-10-08T04:23:00Z ERROR [health-checker] Database health check FAILED: Unable to connect to db-primary.internal:5432
+2026-10-08T04:23:01Z INFO  [db-pool] Attempting failover to db-replica.internal:5432
+2026-10-08T04:23:02Z ERROR [db-pool] Failover FAILED: db-replica.internal:5432 also refusing connections
+2026-10-08T04:23:15Z ERROR [api-gateway] Request failed: POST /api/login - 503 Service Unavailable
+2026-10-08T04:23:15Z ERROR [api-gateway] All database connections unavailable
+2026-10-08T04:23:30Z ERROR [health-checker] Database health check FAILED (attempt 2/3)
+2026-10-08T04:24:00Z ERROR [health-checker] Database health check FAILED (attempt 3/3)
+2026-10-08T04:24:01Z FATAL [health-checker] Service api-gateway marked DEGRADED - database backend unreachable
+2026-10-08T04:24:02Z WARN  [alerting] ALERT TRIGGERED: api-gateway returning 503 errors - database connection failure (error_rate=95%, duration=2m32s)

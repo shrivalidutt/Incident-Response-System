@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  demo-app:
+    build: .
+    image: incident-demo-app:latest
+    container_name: demo-app
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+    restart: unless-stopped
