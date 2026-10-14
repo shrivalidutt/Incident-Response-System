@@ -22,7 +22,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from agents.llm_client import LLMClient
 from orchestrator import Orchestrator

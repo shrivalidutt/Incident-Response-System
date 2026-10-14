@@ -1,12 +1,12 @@
-2026-10-14T06:19:58Z INFO  [demo-app] Handling traffic: POST /api/orders (heap at 65%)
-2026-10-14T06:19:58Z WARN  [demo-app] Heap usage surging: 85% (1.70GB / 2.0GB)
-2026-10-14T06:19:58Z WARN  [demo-app] GC pause: 450ms (threshold: 200ms)
-2026-10-14T06:19:58Z WARN  [demo-app] Heap usage critical: 98% (1.96GB / 2.0GB)
-2026-10-14T06:19:58Z ERROR [demo-app] Request failed: GET /api/users - 500 Internal Server Error (timeout)
-2026-10-14T06:19:58Z ERROR [demo-app] java.lang.OutOfMemoryError: Java heap space
-2026-10-14T06:19:58Z ERROR [demo-app]     at com.example.service.UserService.loadAllUsers(UserService.java:142)
-2026-10-14T06:19:58Z ERROR [demo-app]     at com.example.controller.UserController.getUsers(UserController.java:58)
-2026-10-14T06:19:58Z ERROR [health-checker] Health check FAILED for demo-app (attempt 1/3)
-2026-10-14T06:19:58Z ERROR [health-checker] Health check FAILED for demo-app (attempt 2/3)
-2026-10-14T06:19:58Z FATAL [health-checker] Service demo-app marked UNHEALTHY after OutOfMemoryError
-2026-10-14T06:19:58Z ERROR [load-balancer] Removed demo-app from rotation - container unresponsive
+2026-10-14T18:35:21Z INFO  [demo-app] Handling traffic: POST /api/orders (heap at 65%)
+2026-10-14T18:35:21Z WARN  [demo-app] Heap usage surging: 85% (1.70GB / 2.0GB)
+2026-10-14T18:35:21Z WARN  [demo-app] GC pause: 450ms (threshold: 200ms)
+2026-10-14T18:35:21Z WARN  [demo-app] Heap usage critical: 98% (1.96GB / 2.0GB)
+2026-10-14T18:35:21Z ERROR [demo-app] Request failed: GET /api/users - 500 Internal Server Error (timeout)
+2026-10-14T18:35:21Z ERROR [demo-app] java.lang.OutOfMemoryError: Java heap space
+2026-10-14T18:35:21Z ERROR [demo-app]     at com.example.service.UserService.loadAllUsers(UserService.java:142)
+2026-10-14T18:35:21Z ERROR [demo-app]     at com.example.controller.UserController.getUsers(UserController.java:58)
+2026-10-14T18:35:21Z ERROR [health-checker] Health check FAILED for demo-app (attempt 1/3)
+2026-10-14T18:35:21Z ERROR [health-checker] Health check FAILED for demo-app (attempt 2/3)
+2026-10-14T18:35:21Z FATAL [health-checker] Service demo-app marked UNHEALTHY after OutOfMemoryError
+2026-10-14T18:35:21Z ERROR [load-balancer] Removed demo-app from rotation - container unresponsive

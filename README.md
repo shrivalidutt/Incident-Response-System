@@ -137,7 +137,8 @@ cp .env.example .env
 
 ### 4. Run the Web Application
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
+# Or on Windows, double-click run_demo.bat
 ```
 Open your browser at `http://localhost:8501`.
 

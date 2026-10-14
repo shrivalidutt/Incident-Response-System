@@ -301,7 +301,7 @@ class IncidentDatabase:
         details: Optional[dict] = None,
     ) -> None:
         """Write an audit log entry."""
-        now = datetime.now(datetime.timezone.utc).isoformat() if hasattr(datetime, 'timezone') else datetime.utcnow().isoformat() + "Z"
+        now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             "INSERT OR IGNORE INTO incidents (id, incident_type, log_source, created_at) VALUES (?, 'audit', 'system', ?)",
             (incident_id, now),
@@ -313,7 +313,7 @@ class IncidentDatabase:
             """,
             (
                 incident_id,
-                datetime.utcnow().isoformat() + "Z",
+                datetime.now(timezone.utc).isoformat(),
                 event_type,
                 agent_name,
                 message,

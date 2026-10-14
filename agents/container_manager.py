@@ -94,7 +94,7 @@ class ContainerManager:
         Returns:
             (success: bool, message: str, log_file_path: str)
         """
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         LIVE_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
         if scenario == "oom_crash":
@@ -190,7 +190,7 @@ class ContainerManager:
             except Exception as e:
                 logger.warning("Subprocess failed: %s", e)
 
-        now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         if "restart" in cmd_clean:
             self._sim_state.update({
