@@ -459,24 +459,37 @@ def start_incident_pipeline(scenario: str, logs: str, auto_approve: bool):
         auto_approve=auto_approve,
     )
 
-    # Run Phase 1
-    with st.spinner("Multi-agent team analyzing incident..."):
+    # Live streaming status container (FR2)
+    with st.status("🚨 On-Call Engineering Team Mobilized...", expanded=True) as status_box:
+        def on_start(agent_key, meta):
+            status_box.write(f"🔄 **{meta['emoji']} {meta['name']}** started...")
+
+        def on_complete(agent_key, output, duration_ms):
+            meta = AGENT_METADATA.get(agent_key, {"name": agent_key, "emoji": "🤖"})
+            status_box.write(f"✅ **{meta['emoji']} {meta['name']}** completed in `{duration_ms}ms`")
+
+        orchestrator.on_agent_start = on_start
+        orchestrator.on_agent_complete = on_complete
+
+        # Run Phase 1
         state = orchestrator.run_phase1_analysis_to_safety()
+        st.session_state.incident_state = state
+        st.session_state.pipeline_running = False
 
-    st.session_state.incident_state = state
-    st.session_state.pipeline_running = False
-
-    # Check if human approval is needed (FR3)
-    if state.get("status") == "awaiting_approval":
-        st.session_state.approval_requested = True
-        st.session_state.approval_fix = state.get("approved_fix")
-        st.toast("⚠️ Human Approval Required: Fix classified as MEDIUM risk", icon="🛡️")
-    elif state.get("status") in ("ready_for_execution", "analyzing"):
-        # Auto-execute phase 2
-        with st.spinner("Executing runbook & writing postmortem..."):
+        # Check if human approval is needed (FR3)
+        if state.get("status") == "awaiting_approval":
+            st.session_state.approval_requested = True
+            st.session_state.approval_fix = state.get("approved_fix")
+            status_box.update(label="⚠️ Paused: Human Approval Required (MEDIUM Risk Fix)", state="running", expanded=True)
+            st.toast("⚠️ Human Approval Required: Fix classified as MEDIUM risk", icon="🛡️")
+        elif state.get("status") in ("ready_for_execution", "analyzing"):
+            status_box.write("🐳 **Runbook Executor** running approved remediation...")
             final_state = orchestrator.run_phase2_execution_and_reporting(user_approved=True)
             st.session_state.incident_state = final_state
-        st.toast("✅ Incident response pipeline completed successfully!", icon="🎉")
+            status_box.update(label="✅ Incident Response Complete & Remediated!", state="complete", expanded=False)
+            st.toast("✅ Incident response pipeline completed successfully!", icon="🎉")
+        else:
+            status_box.update(label="🚫 Remediation Blocked by Safety Gate", state="error", expanded=True)
 
     st.rerun()
 
@@ -900,8 +913,19 @@ def render_history_view():
     db = IncidentDatabase()
     incidents = db.list_incidents(limit=50)
 
+    col_head, col_seed = st.columns([3, 1])
+    with col_seed:
+        if st.button("🌱 Seed Demo History", help="Generate sample incidents for presentation demo"):
+            with st.spinner("Seeding incident history..."):
+                orch = Orchestrator(llm_client=LLMClient(provider="mock"), db=db, dry_run=True)
+                for sc in ["oom_crash", "db_connection_failure"]:
+                    logs = load_scenario_logs(sc)
+                    orch.run_full_pipeline(scenario=sc, raw_logs=logs, auto_approve=True)
+            st.toast("Seeded 2 demo incidents into SQLite history!", icon="🌱")
+            st.rerun()
+
     if not incidents:
-        st.info("No past incidents in database yet. Run an incident from the Response Room!")
+        st.info("No past incidents in database yet. Click 'Seed Demo History' above or run an incident from the Response Room!")
         return
 
     for inc in incidents:
