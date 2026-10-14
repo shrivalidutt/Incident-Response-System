@@ -34,3 +34,8 @@ desktop.ini
 
 # Docker
 docker/app/__pycache__/
+
+# Internal Study & Assessment Guides (personal understanding)
+PRESENTATION_GUIDE.md
+docs/CA3_SUBMISSION_CHECKLIST.md
+*checklist*.md

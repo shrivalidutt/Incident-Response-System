@@ -1,0 +1,186 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IncidentResponseOutput",
+  "description": "Schema definition and real-world sample output produced by the Incident Response Room system.",
+  "type": "object",
+  "required": [
+    "incident_id",
+    "status",
+    "error_summary",
+    "timeline",
+    "root_cause",
+    "confidence",
+    "evidence",
+    "proposed_fixes",
+    "approved_fix",
+    "evaluations",
+    "execution_result",
+    "postmortem_report",
+    "status_update",
+    "agent_log"
+  ],
+  "properties": {
+    "incident_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["completed", "failed", "blocked_by_safety_gate", "awaiting_approval"] },
+    "error_summary": {
+      "type": "object",
+      "properties": {
+        "error_types": { "type": "array", "items": { "type": "string" } },
+        "error_count": { "type": "integer" },
+        "first_error_at": { "type": "string" },
+        "last_error_at": { "type": "string" },
+        "affected_services": { "type": "array", "items": { "type": "string" } },
+        "summary": { "type": "string" }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "timestamp": { "type": "string" },
+          "event": { "type": "string" },
+          "severity": { "type": "string" }
+        }
+      }
+    },
+    "root_cause": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "proposed_fixes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "commands": { "type": "array", "items": { "type": "string" } },
+          "risk_level": { "type": "string" },
+          "estimated_downtime": { "type": "string" },
+          "rollback_plan": { "type": "string" }
+        }
+      }
+    },
+    "approved_fix": { "type": ["object", "null"] },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fix_id": { "type": "integer" },
+          "risk_classification": { "type": "string" },
+          "reasoning": { "type": "string" },
+          "potential_impact": { "type": "string" },
+          "safeguards_present": { "type": "boolean" }
+        }
+      }
+    },
+    "execution_result": {
+      "type": "object",
+      "properties": {
+        "fix_id": { "type": "integer" },
+        "commands_run": { "type": "array", "items": { "type": "string" } },
+        "outputs": { "type": "array", "items": { "type": "string" } },
+        "success": { "type": "boolean" },
+        "dry_run": { "type": "boolean" }
+      }
+    },
+    "postmortem_report": { "type": "string" },
+    "status_update": { "type": "string" },
+    "agent_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent_key": { "type": "string" },
+          "agent_name": { "type": "string" },
+          "status": { "type": "string" },
+          "duration_ms": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "sample_output": {
+    "incident_id": "inc-20261015-3b91",
+    "status": "completed",
+    "error_summary": {
+      "error_types": ["OutOfMemoryError: Java heap space", "GC overhead limit exceeded", "HealthCheckFailed"],
+      "error_count": 14,
+      "first_error_at": "2026-10-08T02:12:45Z",
+      "last_error_at": "2026-10-08T02:15:03Z",
+      "affected_services": ["web-server", "health-checker", "load-balancer"],
+      "summary": "The web-server container suffered memory exhaustion due to unbounded memory allocation in UserService.loadAllUsers, leading to persistent OutOfMemoryError exceptions."
+    },
+    "timeline": [
+      { "timestamp": "2026-10-08T02:11:00Z", "event": "Heap usage at 78% (1.56GB / 2.0GB)", "severity": "WARN" },
+      { "timestamp": "2026-10-08T02:12:46Z", "event": "java.lang.OutOfMemoryError in UserService.loadAllUsers", "severity": "ERROR" },
+      { "timestamp": "2026-10-08T02:15:01Z", "event": "Service web-server marked UNHEALTHY", "severity": "FATAL" }
+    ],
+    "root_cause": "Java Virtual Machine heap memory exhaustion caused by unbounded data fetching in UserService.loadAllUsers()",
+    "confidence": 0.94,
+    "evidence": [
+      "Repeated java.lang.OutOfMemoryError: Java heap space thrown at UserService.java:142",
+      "Heap usage climbed from 78% to 98% before crash"
+    ],
+    "proposed_fixes": [
+      {
+        "id": 1,
+        "title": "Restart Container and Increase JVM Heap Limit",
+        "description": "Restart demo-app container to release leaked memory",
+        "commands": ["docker restart demo-app", "docker logs --tail 20 demo-app"],
+        "risk_level": "LOW",
+        "estimated_downtime": "< 10 seconds",
+        "rollback_plan": "docker start demo-app"
+      },
+      {
+        "id": 3,
+        "title": "Force Delete Container and Volume",
+        "description": "Aggressively remove container and destroy attached volumes",
+        "commands": ["docker rm -f demo-app"],
+        "risk_level": "HIGH",
+        "estimated_downtime": "> 5 minutes",
+        "rollback_plan": "Rebuild container from docker-compose."
+      }
+    ],
+    "approved_fix": {
+      "id": 1,
+      "title": "Restart Container and Flush System State",
+      "commands": ["docker restart demo-app", "docker logs --tail 20 demo-app"]
+    },
+    "evaluations": [
+      {
+        "fix_id": 1,
+        "risk_classification": "LOW",
+        "reasoning": "Stateless restart semantics with minimal downtime.",
+        "potential_impact": "Brief request pause under 15 seconds.",
+        "safeguards_present": true
+      },
+      {
+        "fix_id": 3,
+        "risk_classification": "HIGH",
+        "reasoning": "REJECTED: Destructive action risking data loss or state deletion.",
+        "potential_impact": "Irreversible data destruction.",
+        "safeguards_present": false
+      }
+    ],
+    "execution_result": {
+      "fix_id": 1,
+      "commands_run": ["docker restart demo-app", "docker logs --tail 20 demo-app"],
+      "outputs": ["Container demo-app restarted successfully", "Container logs: [INFO] Service initialized and listening on port 8080"],
+      "success": true,
+      "dry_run": true
+    },
+    "postmortem_report": "# Incident Postmortem: OutOfMemory Heap Exhaustion Outage\n\n## Summary\nOn October 8, 2026, our automated incident response system detected and remediated a critical production degradation affecting demo-app...",
+    "status_update": "UPDATE: Our engineering team has identified and resolved the issue impacting our demo application. All services have been restored to full functionality.",
+    "agent_log": [
+      { "agent_key": "log_analyst", "agent_name": "Log Analyst", "status": "completed", "duration_ms": 210 },
+      { "agent_key": "root_cause", "agent_name": "Root-Cause Analyst", "status": "completed", "duration_ms": 195 },
+      { "agent_key": "fix_proposer", "agent_name": "Fix Proposer", "status": "completed", "duration_ms": 204 },
+      { "agent_key": "safety_checker", "agent_name": "Safety Checker", "status": "completed", "duration_ms": 220 },
+      { "agent_key": "runbook_executor", "agent_name": "Runbook Executor", "status": "completed", "duration_ms": 15 },
+      { "agent_key": "postmortem_writer", "agent_name": "Postmortem Writer", "status": "completed", "duration_ms": 240 },
+      { "agent_key": "status_communicator", "agent_name": "Status Communicator", "status": "completed", "duration_ms": 180 }
+    ]
+  }
+}

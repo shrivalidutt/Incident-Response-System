@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IncidentResponseInput",
+  "description": "Schema definition and real-world sample input for the Incident Response Room system.",
+  "type": "object",
+  "required": [
+    "scenario",
+    "raw_logs"
+  ],
+  "properties": {
+    "scenario": {
+      "type": "string",
+      "enum": [
+        "oom_crash",
+        "db_connection_failure",
+        "bad_deploy",
+        "live_container"
+      ],
+      "description": "Identifier of the incident type or failure scenario."
+    },
+    "raw_logs": {
+      "type": "string",
+      "description": "Raw unparsed text log stream from stdout/stderr of affected service containers."
+    },
+    "auto_approve": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, bypasses interactive human approval for MEDIUM risk fixes (automated test mode)."
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "service_name": { "type": "string" },
+        "environment": { "type": "string" },
+        "cluster": { "type": "string" }
+      },
+      "description": "Optional infrastructure context accompanying the incident."
+    }
+  },
+  "sample_input": {
+    "scenario": "oom_crash",
+    "raw_logs": "2026-10-08T02:11:00.102Z [WARN]  [web-server] [metrics] Heap usage at 78% (1.56GB / 2.0GB)\n2026-10-08T02:12:15.890Z [WARN]  [web-server] [gc] GC pause spiked to 450ms (threshold: 200ms)\n2026-10-08T02:12:46.001Z [ERROR] [web-server] [UserService] java.lang.OutOfMemoryError: Java heap space\n    at java.base/java.util.Arrays.copyOf(Arrays.java:3512)\n    at com.example.service.UserService.loadAllUsers(UserService.java:142)\n2026-10-08T02:13:32.411Z [ERROR] [web-server] [http-nio-8080-exec-4] GC overhead limit exceeded\n2026-10-08T02:14:01.002Z [ERROR] [health-checker] Health check FAILED for web-server on :8080/health (timeout after 5000ms)\n2026-10-08T02:15:01.554Z [FATAL] [health-checker] Service web-server marked UNHEALTHY after 3 consecutive failures\n2026-10-08T02:15:03.112Z [ERROR] [load-balancer] Removed web-server from upstream pool due to unhealthy backend status",
+    "auto_approve": false,
+    "metadata": {
+      "service_name": "web-server",
+      "environment": "production",
+      "cluster": "k8s-prod-us-east-1"
+    }
+  }
+}
