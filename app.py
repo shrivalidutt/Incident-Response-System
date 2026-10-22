@@ -486,10 +486,16 @@ def start_incident_pipeline(scenario: str, logs: str, auto_approve: bool):
             status_box.write("🐳 **Runbook Executor** running approved remediation...")
             final_state = orchestrator.run_phase2_execution_and_reporting(user_approved=True)
             st.session_state.incident_state = final_state
+            if hasattr(orchestrator, "docker_executor") and hasattr(orchestrator.docker_executor, "container_manager"):
+                st.session_state.container_manager = orchestrator.docker_executor.container_manager
             status_box.update(label="✅ Incident Response Complete & Remediated!", state="complete", expanded=False)
             st.toast("✅ Incident response pipeline completed successfully!", icon="🎉")
         else:
             status_box.update(label="🚫 Remediation Blocked by Safety Gate", state="error", expanded=True)
+
+        # Clear callbacks so dead references to status_box don't leak across reruns
+        orchestrator.on_agent_start = None
+        orchestrator.on_agent_complete = None
 
     st.rerun()
 
@@ -765,41 +771,93 @@ def render_human_approval_card(state: dict[str, Any]):
     for cmd in fix.get("commands", []):
         st.code(cmd, language="bash")
 
+    st.markdown("---")
+    feedback = st.text_input(
+        "Operator Rejection Feedback (used if you click Reject):",
+        value="Please propose a safer, non-restart alternative that avoids container downtime.",
+        help="When you reject this fix, this feedback is sent to Fix Proposer to generate a safer alternative.",
+    )
+
     col_appr, col_rej = st.columns([1, 1])
 
     with col_appr:
         if st.button("✅ Approve & Execute Fix", type="primary", use_container_width=True):
             orch = st.session_state.orchestrator
-            with st.spinner("Executing approved fix on container..."):
-                final_state = orch.run_phase2_execution_and_reporting(user_approved=True)
-                st.session_state.incident_state = final_state
-                st.session_state.approval_requested = False
-            st.toast("Fix approved and executed!", icon="✅")
+            if not orch:
+                llm = LLMClient(api_key=st.session_state.api_key, provider=st.session_state.provider)
+                orch = Orchestrator(llm_client=llm, db=IncidentDatabase(), dry_run=st.session_state.dry_run)
+                orch.shared_state = state
+                st.session_state.orchestrator = orch
+
+            with st.status("🐳 Executing Approved Remediation & Generating Postmortem...", expanded=True) as status_box:
+                def on_start(agent_key, meta):
+                    status_box.write(f"🔄 **{meta['emoji']} {meta['name']}** running...")
+
+                def on_complete(agent_key, output, duration_ms):
+                    meta = AGENT_METADATA.get(agent_key, {"name": agent_key, "emoji": "🤖"})
+                    status_box.write(f"✅ **{meta['emoji']} {meta['name']}** completed in `{duration_ms}ms`")
+
+                orch.on_agent_start = on_start
+                orch.on_agent_complete = on_complete
+                try:
+                    final_state = orch.run_phase2_execution_and_reporting(user_approved=True)
+                    st.session_state.incident_state = final_state
+                    st.session_state.approval_requested = False
+                    st.session_state.rejection_mode = False
+                    if hasattr(orch, "docker_executor") and hasattr(orch.docker_executor, "container_manager"):
+                        st.session_state.container_manager = orch.docker_executor.container_manager
+                    status_box.update(label="✅ Remediation Executed & Postmortem Generated!", state="complete", expanded=False)
+                    st.toast("Fix approved and executed!", icon="✅")
+                except Exception as e:
+                    logger.error("Error executing approved fix: %s", e)
+                    st.error(f"Execution error: {e}")
+                finally:
+                    orch.on_agent_start = None
+                    orch.on_agent_complete = None
             st.rerun()
 
     with col_rej:
         if st.button("❌ Reject & Request Alternative Fix", use_container_width=True):
-            st.session_state.rejection_mode = True
-
-    if st.session_state.get("rejection_mode"):
-        st.markdown("---")
-        st.warning("Provide operator rejection feedback to guide the Fix Proposer:")
-        feedback = st.text_input(
-            "Rejection Reason / Guidance for AI Agents",
-            value="Please propose a safer, non-restart alternative that avoids container downtime.",
-        )
-        if st.button("🔁 Submit Feedback and Loop Back to Fix Proposer", type="secondary"):
             orch = st.session_state.orchestrator
-            with st.spinner("Sending feedback back to Fix Proposer for alternative..."):
-                updated_state = orch.handle_rejection(feedback)
-                st.session_state.incident_state = updated_state
-                st.session_state.rejection_mode = False
-                if updated_state.get("status") == "awaiting_approval":
-                    st.session_state.approval_requested = True
-                    st.session_state.approval_fix = updated_state.get("approved_fix")
-                else:
-                    st.session_state.approval_requested = False
-            st.toast("Control looped back to Fix Proposer with your feedback!", icon="🔄")
+            if not orch:
+                llm = LLMClient(api_key=st.session_state.api_key, provider=st.session_state.provider)
+                orch = Orchestrator(llm_client=llm, db=IncidentDatabase(), dry_run=st.session_state.dry_run)
+                orch.shared_state = state
+                st.session_state.orchestrator = orch
+
+            with st.status("🔄 Feedback Loop Active: Fix Proposer generating alternative...", expanded=True) as loop_box:
+                def on_start_loop(agent_key, meta):
+                    loop_box.write(f"🔄 **{meta['emoji']} {meta['name']}** re-evaluating...")
+
+                def on_complete_loop(agent_key, output, duration_ms):
+                    meta = AGENT_METADATA.get(agent_key, {"name": agent_key, "emoji": "🤖"})
+                    loop_box.write(f"✅ **{meta['emoji']} {meta['name']}** updated in `{duration_ms}ms`")
+
+                orch.on_agent_start = on_start_loop
+                orch.on_agent_complete = on_complete_loop
+                try:
+                    updated_state = orch.handle_rejection(feedback or "Operator requested alternative fix")
+                    st.session_state.incident_state = updated_state
+                    st.session_state.rejection_mode = False
+                    if updated_state.get("status") == "awaiting_approval":
+                        st.session_state.approval_requested = True
+                        st.session_state.approval_fix = updated_state.get("approved_fix")
+                        loop_box.update(label="⚠️ Alternative Fix requires review", state="running")
+                    else:
+                        st.session_state.approval_requested = False
+                        loop_box.write("🐳 **Runbook Executor** executing safe alternative remediation...")
+                        final_state = orch.run_phase2_execution_and_reporting(user_approved=True)
+                        st.session_state.incident_state = final_state
+                        if hasattr(orch, "docker_executor") and hasattr(orch.docker_executor, "container_manager"):
+                            st.session_state.container_manager = orch.docker_executor.container_manager
+                        loop_box.update(label="✅ Alternative Fix Executed & Remediated!", state="complete", expanded=False)
+                    st.toast("Control looped back to Fix Proposer with your feedback!", icon="🔄")
+                except Exception as e:
+                    logger.error("Error during rejection loop: %s", e)
+                    st.error(f"Rejection loop error: {e}")
+                finally:
+                    orch.on_agent_start = None
+                    orch.on_agent_complete = None
             st.rerun()
 
 

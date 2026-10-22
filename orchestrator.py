@@ -318,7 +318,10 @@ class Orchestrator:
         started_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
  
         if self.on_agent_start:
-            self.on_agent_start(agent_key, meta)
+            try:
+                self.on_agent_start(agent_key, meta)
+            except Exception as cb_err:
+                logger.warning("on_agent_start callback failed (non-fatal): %s", cb_err)
 
         start_time = time.time()
         error_msg = None
@@ -334,7 +337,10 @@ class Orchestrator:
             status = "failed"
             logger.error("Agent %s failed: %s", agent_name, e)
             if self.on_agent_error:
-                self.on_agent_error(agent_key, error_msg)
+                try:
+                    self.on_agent_error(agent_key, error_msg)
+                except Exception as cb_err:
+                    logger.warning("on_agent_error callback failed (non-fatal): %s", cb_err)
             raise
 
         finally:
@@ -358,7 +364,10 @@ class Orchestrator:
             self._save_step_to_db(agent_key, status, output, error_msg, started_at, completed_at, elapsed_ms)
 
             if status == "completed" and self.on_agent_complete:
-                self.on_agent_complete(agent_key, output, elapsed_ms)
+                try:
+                    self.on_agent_complete(agent_key, output, elapsed_ms)
+                except Exception as cb_err:
+                    logger.warning("on_agent_complete callback failed (non-fatal): %s", cb_err)
 
     def _save_step_to_db(
         self,

@@ -39,7 +39,9 @@ def run_agent(shared_state: dict[str, Any], llm_client: Any) -> dict[str, Any]:
         raise ValueError("Safety Checker requires 'proposed_fixes' in shared_state.")
 
     system_prompt = load_prompt()
-    user_message = f"Proposed Fixes to evaluate for safety:\n{json.dumps(proposed_fixes, indent=2)}"
+    feedback = shared_state.get("rejection_feedback") or shared_state.get("rejection_reason")
+    feedback_str = f"OPERATOR_REJECTION_FEEDBACK: {feedback}\n\n" if feedback else ""
+    user_message = f"{feedback_str}Proposed Fixes to evaluate for safety:\n{json.dumps(proposed_fixes, indent=2)}"
 
     logger.info("Safety Checker evaluating %d proposed fixes", len(proposed_fixes))
     result = llm_client.call(system_prompt=system_prompt, user_message=user_message, parse_json=True)

@@ -314,20 +314,37 @@ def get_mock_response(system_prompt: str, user_message: str) -> dict[str, Any] |
         ]
 
         if is_deploy:
-            approved_fix_id = 1
-            approved_fix = {
-                "id": 1,
-                "title": "Rollback Container Image to Stable Release v2.4.0",
-                "description": "Immediately revert container image tag to known-stable version v2.4.0 to restore checkout endpoint",
-                "commands": [
-                    "docker restart demo-app",
-                    "docker logs --tail 25 demo-app"
-                ],
-                "risk_level": "MEDIUM",
-                "estimated_downtime": "< 30 seconds",
-                "rollback_plan": "docker restart demo-app"
-            }
-            requires_human_approval = True
+            has_feedback = "operator_rejection_feedback" in msg_lower or "rejection_feedback" in msg_lower
+            if has_feedback:
+                approved_fix_id = 2
+                approved_fix = {
+                    "id": 2,
+                    "title": "Disable Experimental Feature Flag via Environment Variable",
+                    "description": "Keep v2.4.1 running but turn off FEATURE_NEW_CHECKOUT to fallback to v1 checkout logic",
+                    "commands": [
+                        "docker restart demo-app",
+                        "docker logs --tail 25 demo-app"
+                    ],
+                    "risk_level": "LOW",
+                    "estimated_downtime": "< 10 seconds",
+                    "rollback_plan": "Re-enable flag if needed."
+                }
+                requires_human_approval = False
+            else:
+                approved_fix_id = 1
+                approved_fix = {
+                    "id": 1,
+                    "title": "Rollback Container Image to Stable Release v2.4.0",
+                    "description": "Immediately revert container image tag to known-stable version v2.4.0 to restore checkout endpoint",
+                    "commands": [
+                        "docker restart demo-app",
+                        "docker logs --tail 25 demo-app"
+                    ],
+                    "risk_level": "MEDIUM",
+                    "estimated_downtime": "< 30 seconds",
+                    "rollback_plan": "docker restart demo-app"
+                }
+                requires_human_approval = True
         else:
             approved_fix_id = 1
             approved_fix = {
